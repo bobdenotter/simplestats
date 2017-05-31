@@ -2,6 +2,7 @@
 
 namespace Local\Simplestats;
 
+use Bolt\Extension\DatabaseSchemaTrait;
 use Bolt\Extension\SimpleExtension;
 use Bolt\Menu\MenuEntry;
 use Silex\Application;
@@ -11,6 +12,26 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SimpleStatsExtension extends SimpleExtension
 {
+    use DatabaseSchemaTrait;
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function registerServices(Application $app)
+    {
+        $this->extendDatabaseSchemaServices();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function registerExtensionTables()
+    {
+        return [
+            'simplestats_log' => Tables\LogTable::class,
+        ];
+    }
+
     /**
      * Set up the default configuration.
      *
