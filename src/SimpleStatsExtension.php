@@ -131,7 +131,7 @@ class SimpleStatsExtension extends SimpleExtension
     {
         $asset = new Snippet();
         $asset->setCallback([$this, 'callbackSnippet'])
-            ->setLocation(Target::START_OF_BODY)
+            ->setLocation(Target::END_OF_HEAD)
             ->setPriority(0)
             ->setZone(Zone::FRONTEND)
         ;
@@ -158,7 +158,7 @@ class SimpleStatsExtension extends SimpleExtension
 
         $app['db']->insert($this->getTablename(), $log);
 
-        return '<!-- Bolt SimpleStats++ -->';
+        return '<!-- Bolt SimpleStats++: ' . $url['path'] . ' -->';
     }
 
     public function getTablename()
