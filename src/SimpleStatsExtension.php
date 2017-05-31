@@ -2,9 +2,13 @@
 
 namespace Local\Simplestats;
 
+use Bolt\Asset\Snippet\Snippet;
+use Bolt\Asset\Target;
+use Bolt\Controller\Zone;
 use Bolt\Extension\DatabaseSchemaTrait;
 use Bolt\Extension\SimpleExtension;
 use Bolt\Menu\MenuEntry;
+use Carbon\Carbon;
 use Silex\Application;
 use Silex\ControllerCollection;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +25,7 @@ class SimpleStatsExtension extends SimpleExtension
     {
         $this->extendDatabaseSchemaServices();
     }
+
 
     /**
      * {@inheritdoc}
@@ -77,10 +82,10 @@ class SimpleStatsExtension extends SimpleExtension
      */
     protected function registerBackendRoutes(ControllerCollection $collection)
     {
-        // GET requests on the /bolt/extensions/foo route
         $collection->get('/extensions/simplestats', [$this, 'backendSimpleStats']);
 
     }
+
 
     /**
      * Register twig functions to be used in templates.
@@ -120,5 +125,46 @@ class SimpleStatsExtension extends SimpleExtension
     public function backendSimpleStats(Application $app, Request $request)
     {
         return $this->renderTemplate('simplestats.twig');
+    }
+
+    protected function registerAssets()
+    {
+        $asset = new Snippet();
+        $asset->setCallback([$this, 'callbackSnippet'])
+            ->setLocation(Target::START_OF_BODY)
+            ->setPriority(0)
+            ->setZone(Zone::FRONTEND)
+        ;
+
+        return [
+            $asset,
+        ];
+    }
+
+    public function callbackSnippet()
+    {
+        $app = $this->getContainer();
+        $url = parse_url($app['request']->getUri());
+        $carbon = new Carbon();
+        $log = [
+            'ip' => $app['request']->getClientIp(),
+            'timestamp' => $carbon->toRfc3339String(),
+            'browseragent' => $app['request']->headers->get('user-agent'),
+            'route' => $app['request']->get('_route'),
+            'uri' => $url['path'],
+            'query' => isset($url['query']) ? $url['query'] : '',
+            'referrer' => $app['request']->headers->get('referer')
+        ];
+
+        $app['db']->insert($this->getTablename(), $log);
+
+        return '<!-- Bolt SimpleStats++ -->';
+    }
+
+    public function getTablename()
+    {
+        $app = $this->getContainer();
+
+        return sprintf("%s%s", $app['config']->get('general/database/prefix'), 'simplestats_log');
     }
 }
