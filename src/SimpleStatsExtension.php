@@ -1,6 +1,6 @@
 <?php
 
-namespace Local\Simplestats;
+namespace Local\SimpleStats;
 
 use Bolt\Asset\Snippet\Snippet;
 use Bolt\Asset\Target;
@@ -9,8 +9,8 @@ use Bolt\Extension\DatabaseSchemaTrait;
 use Bolt\Extension\SimpleExtension;
 use Bolt\Menu\MenuEntry;
 use Carbon\Carbon;
+use Local\SimpleStats\Controller\SimpleStats;
 use Silex\Application;
-use Silex\ControllerCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -18,18 +18,11 @@ class SimpleStatsExtension extends SimpleExtension
 {
     use DatabaseSchemaTrait;
 
-    /**
-     * {@inheritdoc}
-     */
     protected function registerServices(Application $app)
     {
         $this->extendDatabaseSchemaServices();
     }
 
-
-    /**
-     * {@inheritdoc}
-     */
     protected function registerExtensionTables()
     {
         return [
@@ -37,13 +30,11 @@ class SimpleStatsExtension extends SimpleExtension
         ];
     }
 
-    /**
-     * Set up the default configuration.
-     *
-     * @see https://docs.bolt.cm/extensions/basics/configuration#providing-defaults
-     *
-     * @return array
-     */
+    protected function registerTwigPaths()
+    {
+        return ['templates'];
+    }
+
     protected function getDefaultConfig()
     {
         return [
@@ -73,17 +64,11 @@ class SimpleStatsExtension extends SimpleExtension
     }
 
 
-    /**
-     * Register routes for the Backend
-     *
-     * @see https://docs.bolt.cm/extensions/intermediate/controllers-routes#route-callback-functions
-     *
-     * @param ControllerCollection $collection
-     */
-    protected function registerBackendRoutes(ControllerCollection $collection)
+    protected function registerBackendControllers()
     {
-        $collection->get('/extensions/simplestats', [$this, 'backendSimpleStats']);
-
+        return [
+            '/extensions/simplestats' => new SimpleStats($this->getContainer(), $this->getConfig()),
+        ];
     }
 
 

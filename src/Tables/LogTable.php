@@ -1,6 +1,6 @@
 <?php
 
-namespace Local\Simplestats\Tables;
+namespace Local\SimpleStats\Tables;
 
 use Bolt\Storage\Database\Schema\Table\BaseTable;
 
